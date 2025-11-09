@@ -1,84 +1,132 @@
-import React, { useCallback, useState } from "react";
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from "react";
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 interface LoginFormProps {
-  onSubmit: (data: { email: string; password: string }) => void;
+  onSubmit: (data: { email: string; password: string; rememberMe: boolean }) => void;
   onCancel: () => void;
 }
 
 export default function LoginForm({ onSubmit, onCancel }: LoginFormProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const isDark = useColorScheme() === 'dark';
 
-  const handleSubmit = useCallback(() => {
-    onSubmit({ email, password });
-  }, [email, password, onSubmit]);
+  const handleLogin = () => {
+    onSubmit({ email, password, rememberMe });
+  };
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.keyboardAvoidingView}
+      style={[styles.container, { backgroundColor: isDark ? '#1F1F1F' : '#FFFFFF' }]}
     >
-      <ScrollView
+      <ScrollView 
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.formTitle}>Iniciar Sesión</Text>
-          <Text style={styles.formSubtitle}>
-            Ingresa tus credenciales para continuar
-          </Text>
+        {/* Header Section */}
+        <View style={[styles.headerSection, { backgroundColor: isDark ? '#20336d' : '#20336d' }]}>
+          <Image 
+            source={require('../../../assets/iu/logo_white.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.universityTitle}>Universidad Nexus</Text>
+          <Text style={styles.universitySubTitle}>Bienvenido a tu espacio digital</Text>
         </View>
 
-        {/* Formulario */}
-        <View style={styles.form}>
+        {/* Form Section */}
+        <View style={styles.formSection}>
           {/* Campo Email */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
             <TextInput
-              style={styles.input}
-              placeholder="correo@ejemplo.com"
+              style={[styles.input, { 
+                backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5',
+                color: isDark ? '#FFFFFF' : '#000000'
+              }]}
+              placeholder="Email"
+              placeholderTextColor={isDark ? '#888' : '#999'}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              placeholderTextColor="#999"
             />
           </View>
 
           {/* Campo Password */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Contraseña</Text>
             <TextInput
-              style={styles.input}
-              placeholder="Tu contraseña"
+              style={[styles.input, styles.passwordInput, { 
+                backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5',
+                color: isDark ? '#FFFFFF' : '#000000'
+              }]}
+              placeholder="Password"
+              placeholderTextColor={isDark ? '#888' : '#999'}
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
-              placeholderTextColor="#999"
+              secureTextEntry={!showPassword}
             />
+            <TouchableOpacity 
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Ionicons 
+                name={showPassword ? "eye-off" : "eye"} 
+                size={22} 
+                color={isDark ? '#888' : '#999'} 
+              />
+            </TouchableOpacity>
           </View>
 
-          {/* Botones */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-              <Text style={styles.submitButtonText}>Entrar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
-            </TouchableOpacity>
+          {/* Remember me */}
+          <View style={styles.rememberContainer}>
+            <Switch
+              value={rememberMe}
+              onValueChange={setRememberMe}
+              trackColor={{ false: "#D1D1D1", true: "#20336d" }}
+              thumbColor={rememberMe ? "#FFFFFF" : "#F4F4F4"}
+              ios_backgroundColor="#D1D1D1"
+              style={styles.switch}
+            />
+            <Text style={[styles.rememberText, { color: isDark ? '#AAA' : '#666' }]}>
+              Remember me
+            </Text>
           </View>
+
+          {/* Botón Login */}
+          <TouchableOpacity 
+            style={styles.loginButton}
+            onPress={handleLogin}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.loginButtonText}>LOGIN</Text>
+          </TouchableOpacity>
+
+          {/* Botón Cancelar */}
+          <TouchableOpacity 
+            style={styles.cancelButton}
+            onPress={onCancel}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.cancelButtonText, { color: isDark ? '#888' : '#666' }]}>
+              Olvidaste tu contraseña?
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -86,52 +134,102 @@ export default function LoginForm({ onSubmit, onCancel }: LoginFormProps) {
 }
 
 const styles = StyleSheet.create({
-  keyboardAvoidingView: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingBottom: 20 },
-  header: { marginBottom: 30, paddingTop: 10 },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
-    textAlign: "center",
-    marginBottom: 8,
+  container: {
+    flex: 1,
   },
-  formSubtitle: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 22,
+  scrollContent: {
+    flexGrow: 1,
   },
-  form: { flex: 1 },
-  inputContainer: { marginBottom: 20 },
-  label: { fontSize: 16, fontWeight: "600", color: "#333", marginBottom: 8 },
+  headerSection: {
+    paddingVertical: 60,
+    paddingHorizontal: 30,
+    alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 80 : 60,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    marginBottom: 24,
+  },
+  universityTitle: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    letterSpacing: 1.5,
+  },
+  universitySubTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    letterSpacing: 1.7,
+    alignContent:'center'
+  },
+  formSection: {
+    flex: 1,
+    paddingHorizontal: 30,
+    paddingVertical: 40,
+  },
+  inputContainer: {
+    marginBottom: 20,
+    position: 'relative',
+  },
   input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
+    height: 54,
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
     fontSize: 16,
-    backgroundColor: "#fafafa",
-    color: "#333",
+    fontWeight: '400',
   },
-  buttonContainer: { marginTop: 20, gap: 12 },
-  submitButton: {
-    backgroundColor: "#007AFF",
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: "center",
-    elevation: 3,
+  passwordInput: {
+    paddingRight: 55,
   },
-  submitButtonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  eyeIcon: {
+    position: 'absolute',
+    right: 20,
+    top: 16,
+  },
+  rememberContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 35,
+    marginTop: 8,
+  },
+  switch: {
+    marginRight: 12,
+    transform: [{ scaleX: 0.95 }, { scaleY: 0.95 }],
+  },
+  rememberText: {
+    fontSize: 15,
+    fontWeight: '400',
+  },
+  loginButton: {
+    backgroundColor: '#20336d',
+    height: 54,
+    borderRadius: 27,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#20336d",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
+    marginBottom: 16,
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+  },
   cancelButton: {
-    backgroundColor: "transparent",
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ddd",
+    paddingVertical: 12,
+    alignItems: 'center',
   },
-  cancelButtonText: { color: "#666", fontSize: 16, fontWeight: "500" },
+  cancelButtonText: {
+    fontSize: 15,
+    fontWeight: '400',
+  },
 });
-
