@@ -8,8 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
-
-const TOKEN_KEY = "@miapp:token";
+import { TOKEN_KEY } from "@/hooks/useAuths";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -22,7 +21,14 @@ export default function RootLayout() {
     const checkLogin = async () => {
       try {
         const token = await AsyncStorage.getItem(TOKEN_KEY);
-        setIsLoggedIn(!!token); // true si hay token guardado
+        const wasLoggedIn = isLoggedIn;
+        const newLoggedInState = !!token;
+        
+        if (wasLoggedIn !== newLoggedInState) {
+          console.log(`Auth state changed: ${wasLoggedIn} -> ${newLoggedInState}, token exists: ${!!token}`);
+        }
+        
+        setIsLoggedIn(newLoggedInState);
       } catch (e) {
         console.error("Error leyendo token", e);
         setIsLoggedIn(false);
@@ -30,7 +36,14 @@ export default function RootLayout() {
         setLoading(false);
       }
     };
+    
     checkLogin();
+
+    // Poll para detectar cambios en el token (cuando se guarda/borra desde login.tsx)
+    // Make it more frequent during logout
+    const interval = setInterval(checkLogin, 200);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

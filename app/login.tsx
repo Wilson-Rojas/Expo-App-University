@@ -1,11 +1,13 @@
 import LoginForm from '@/components/ui/forms/LoginForm';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import BottomSheet from "@gorhom/bottom-sheet";
-import { DarkTheme, DefaultTheme, ThemeProvider, useTheme } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef } from "react";
-import { View } from "react-native";
+import { View, Alert } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from 'expo-router';
+import { useAuth } from '@/hooks/useAuths';
 
 export default function Login() {
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -44,14 +46,23 @@ interface LoginContentProps {
 }
 
 function LoginContent({ onOpen, onClose }: LoginContentProps) {
-  const { colors } = useTheme();
+  const router = useRouter();
+  const { login } = useAuth();
+
+  const handleSubmit = async (data: { email: string; password: string; rememberMe: boolean }) => {
+    const res = await login(data.email, data.password);
+    if (res.success) {
+      // navigate to protected tabs index (root of the tabs group)
+      router.replace("/(protected)/(tabs)");
+      onClose();
+    } else {
+      Alert.alert('Login failed', res.error || 'Error desconocido');
+    }
+  };
   return (
     <View style={{ flex: 1 }}>
       <LoginForm
-        onSubmit={(data) => {
-          console.log("Datos de login:", data);
-          onClose();
-        }}
+        onSubmit={handleSubmit}
         onCancel={onClose}
       />
     </View>
